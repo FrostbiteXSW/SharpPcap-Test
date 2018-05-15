@@ -1,28 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 using System.Net;
 using System.Net.NetworkInformation;
-using SharpPcap;
+using System.Text;
+using System.Windows.Forms;
 using PacketDotNet;
-using PacketDotNet.Utils;
+using SharpPcap;
+using Version = SharpPcap.Version;
 
-namespace SharpPcap测试
-{
+namespace SharpPcap测试 {
     public partial class MainForm : Form
     {
         // 全局变量定义在此处
-        static ToolTip DeviceListTooltip = new ToolTip();               // 设备列表鼠标悬停弹出窗口
-        static List<string> DeviceListInfo = new List<string>();        // 设备列表描述信息，用于鼠标悬停弹出窗口中显示
-        static int DeviceListTempIndex = -1;                            // 鼠标最后一次悬停的项的索引号，用于防止反复更新鼠标悬停弹出窗口
-        static bool NeedSelectAll = false,                              // 全选标志，用于MouseClick事件
-                    IsChangedByProgram = false;                         // 程序规范化更改标志，用于JumpToNextIPTextbox事件
+        private static readonly ToolTip DeviceListTooltip = new ToolTip();               // 设备列表鼠标悬停弹出窗口
+        private static readonly List<string> DeviceListInfo = new List<string>();        // 设备列表描述信息，用于鼠标悬停弹出窗口中显示
+        private static int _deviceListTempIndex = -1;                            // 鼠标最后一次悬停的项的索引号，用于防止反复更新鼠标悬停弹出窗口
+
+        private static bool _needSelectAll,                              // 全选标志，用于MouseClick事件
+                    _isChangedByProgram;                         // 程序规范化更改标志，用于JumpToNextIPTextbox事件
 
         // 主窗口入口点
         public MainForm()
@@ -34,7 +29,7 @@ namespace SharpPcap测试
             try
             {
                 // 打印SharpPcap版本  
-                string ver = SharpPcap.Version.VersionString;
+                string ver = Version.VersionString;
                 OutputBox.AppendText("SharpPcap " + ver + "\r\n\r\n");
 
                 // 转存设备列表信息  
@@ -57,7 +52,7 @@ namespace SharpPcap测试
                 // 打印设备列表信息
                 foreach (var dev in devices)
                 {
-                    DeviceList.Items.Add(dev.Description.Remove(dev.Description.LastIndexOf("'")).Substring(dev.Description.IndexOf("'") + 1));
+                    DeviceList.Items.Add(dev.Description.Remove(dev.Description.LastIndexOf("'", StringComparison.Ordinal)).Substring(dev.Description.IndexOf("'", StringComparison.Ordinal) + 1));
                     string buf = dev.ToString();
                     buf = buf.Replace("\n\n", "\n");
                     buf = buf.Replace("\n", "\r\n");
@@ -76,16 +71,16 @@ namespace SharpPcap测试
         // 设备列表鼠标移动事件，显示ToolTip
         private void DeviceList_MouseMove(object sender, MouseEventArgs e)
         {
-            int Index = ((ListBox)sender).IndexFromPoint(e.Location);
-            if (Index < 0)
+            int index = ((ListBox)sender).IndexFromPoint(e.Location);
+            if (index < 0)
             {
-                DeviceListTempIndex = -1;
+                _deviceListTempIndex = -1;
                 return;
             }
-            if (DeviceListTempIndex == -1 || DeviceListTempIndex != Index)
+            if (_deviceListTempIndex == -1 || _deviceListTempIndex != index)
             {
-                DeviceListTempIndex = Index;
-                DeviceListTooltip.SetToolTip(DeviceList, DeviceListInfo[Index]);
+                _deviceListTempIndex = index;
+                DeviceListTooltip.SetToolTip(DeviceList, DeviceListInfo[index]);
             }
         }
 
@@ -93,18 +88,18 @@ namespace SharpPcap测试
         private void JumpToNextByteTextbox(object sender, EventArgs e)
         {
             TextBox temp = (TextBox)sender;
-            if (temp.Text.Length == 3 && !IsChangedByProgram)
+            if (temp.Text.Length == 3 && !_isChangedByProgram)
             {
                 if (Convert.ToInt32(temp.Text) > 255)
                 {
-                    IsChangedByProgram = true;
-                    temp.Text = "255";
+                    _isChangedByProgram = true;
+                    temp.Text = @"255";
                 }
                 SelectNextControl(temp, true, true, true, true);
             }
             else
             {
-                IsChangedByProgram = false;
+                _isChangedByProgram = false;
             }
         }
 
@@ -112,18 +107,18 @@ namespace SharpPcap测试
         private void JumpToNextWordTextbox(object sender, EventArgs e)
         {
             TextBox temp = (TextBox)sender;
-            if (temp.Text.Length == 5 && !IsChangedByProgram)
+            if (temp.Text.Length == 5 && !_isChangedByProgram)
             {
                 if (Convert.ToInt32(temp.Text) > 65535)
                 {
-                    IsChangedByProgram = true;
-                    temp.Text = "65535";
+                    _isChangedByProgram = true;
+                    temp.Text = @"65535";
                 }
                 SelectNextControl(temp, true, true, true, true);
             }
             else
             {
-                IsChangedByProgram = false;
+                _isChangedByProgram = false;
             }
         }
 
@@ -131,18 +126,18 @@ namespace SharpPcap测试
         private void JumpToNextDWordTextbox(object sender, EventArgs e)
         {
             TextBox temp = (TextBox)sender;
-            if (temp.Text.Length == 10 && !IsChangedByProgram)
+            if (temp.Text.Length == 10 && !_isChangedByProgram)
             {
                 if (Convert.ToInt64(temp.Text) > 4294967295)
                 {
-                    IsChangedByProgram = true;
-                    temp.Text = "4294967295";
+                    _isChangedByProgram = true;
+                    temp.Text = @"4294967295";
                 }
                 SelectNextControl(temp, true, true, true, true);
             }
             else
             {
-                IsChangedByProgram = false;
+                _isChangedByProgram = false;
             }
         }
 
@@ -150,18 +145,18 @@ namespace SharpPcap测试
         private void JumpToNextFragmentFlagsTextbox(object sender, EventArgs e)
         {
             TextBox temp = (TextBox)sender;
-            if (temp.Text.Length == 1 && !IsChangedByProgram)
+            if (temp.Text.Length == 1 && !_isChangedByProgram)
             {
                 if (Convert.ToInt32(temp.Text) > 7)
                 {
-                    IsChangedByProgram = true;
-                    temp.Text = "7";
+                    _isChangedByProgram = true;
+                    temp.Text = @"7";
                 }
                 SelectNextControl(temp, true, true, true, true);
             }
             else
             {
-                IsChangedByProgram = false;
+                _isChangedByProgram = false;
             }
         }
 
@@ -169,18 +164,18 @@ namespace SharpPcap测试
         private void JumpToNextFragmentTextbox(object sender, EventArgs e)
         {
             TextBox temp = (TextBox)sender;
-            if (temp.Text.Length == 4 && !IsChangedByProgram)
+            if (temp.Text.Length == 4 && !_isChangedByProgram)
             {
                 if (Convert.ToInt32(temp.Text) > 8190)
                 {
-                    IsChangedByProgram = true;
-                    temp.Text = "8191";
+                    _isChangedByProgram = true;
+                    temp.Text = @"8191";
                 }
                 SelectNextControl(temp, true, true, true, true);
             }
             else
             {
-                IsChangedByProgram = false;
+                _isChangedByProgram = false;
             }
         }
 
@@ -190,12 +185,12 @@ namespace SharpPcap测试
             TextBox temp = (TextBox)sender;
             if (temp.Text == "")
             {
-                temp.Text = "0";
+                temp.Text = @"0";
             }
         }
 
         // MAC输入窗口TextChanged事件，自动切换到下个输入
-        private void JumpToNextMACTextbox(object sender, EventArgs e)
+        private void JumpToNextMacTextbox(object sender, EventArgs e)
         {
             TextBox temp = (TextBox)sender;
             if (temp.Text.Length == 2)
@@ -208,7 +203,7 @@ namespace SharpPcap测试
         private void TextboxEnter(object sender, EventArgs e)
         {
             TextBox temp = (TextBox)sender;
-            NeedSelectAll = true;
+            _needSelectAll = true;
             temp.SelectAll();
         }
 
@@ -216,10 +211,10 @@ namespace SharpPcap测试
         private void TextboxMouseClick(object sender, MouseEventArgs e)
         {
             TextBox temp = (TextBox)sender;
-            if (NeedSelectAll)
+            if (_needSelectAll)
             {
                 temp.SelectAll();
-                NeedSelectAll = false;
+                _needSelectAll = false;
             }
         }
 
@@ -261,8 +256,6 @@ namespace SharpPcap测试
                     IPv4GroupBox.Enabled = false;
                     ARPGroupBox.Enabled = true;
                     break;
-                default:
-                    break;
             }
         }
 
@@ -287,48 +280,44 @@ namespace SharpPcap测试
         private void SendPacketButton_Click(object sender, EventArgs e)
         {
             // 打开网络设备
-            int SelectedDeviceIndex = DeviceList.SelectedIndex;
-            if (SelectedDeviceIndex < 0)
+            int selectedDeviceIndex = DeviceList.SelectedIndex;
+            if (selectedDeviceIndex < 0)
             {
                 OutputBox.AppendText("请先选择网络设备。\r\n");
                 return;
             }
             var devices = CaptureDeviceList.Instance;
-            ICaptureDevice CurDev = null;
-            foreach (var dev in devices)
-            {
-                if (SelectedDeviceIndex == 0)
+            ICaptureDevice curDev = null;
+            foreach (var dev in devices) {
+                if (selectedDeviceIndex == 0)
                 {
-                    CurDev = dev;
+                    curDev = dev;
                     break;
                 }
-                else
-                {
-                    SelectedDeviceIndex--;
-                }
+                selectedDeviceIndex--;
             }
-            if (CurDev == null)
+            if (curDev == null)
             {
                 OutputBox.AppendText("错误出现在网络设备上，发送数据包失败。\r\n");
                 return;
             }
-            CurDev.Open();
+            curDev.Open();
 
             // 封装数据包
-            int PacketType = NetworkLayerComboBox.SelectedIndex * 10 + TransportLayerComboBox.SelectedIndex;
-            EthernetPacket ether = null;
-            switch(PacketType)
+            int packetType = NetworkLayerComboBox.SelectedIndex * 10 + TransportLayerComboBox.SelectedIndex;
+            EthernetPacket ether;
+            switch(packetType)
             {
                 case 0:     // IPv4 + TCP
-                    ether = TCPonIPv4PacketMaker();
+                    ether = TcPonIPv4PacketMaker();
                     OutputBox.AppendText(ether.PrintHex() + "\r\n\r\n");
                     break;
                 case 1:     // IPv4 + UDP
-                    ether = UDPonIPv4PacketMaker();
+                    ether = UdPonIPv4PacketMaker();
                     OutputBox.AppendText(ether.PrintHex() + "\r\n\r\n");
                     break;
                 case 9:    // ARP
-                    ether = ARPorRARPPacketMaker();
+                    ether = ArPorRarpPacketMaker();
                     OutputBox.AppendText(ether.PrintHex() + "\r\n\r\n");
                     break;
                 default:
@@ -337,11 +326,7 @@ namespace SharpPcap测试
             }
 
             // 发送数据包
-            if (ether == null)
-            {
-                OutputBox.AppendText("错误出现在数据包封装上，发送数据包失败。\r\n");
-            }
-            CurDev.SendPacket(ether);
+            curDev.SendPacket(ether);
         }
 
         // 十六进制及输入窗口KeyPress事件，限制输入格式为数字或A-F
@@ -362,11 +347,11 @@ namespace SharpPcap测试
         }
 
         // IPv4 + TCP数据包封装函数
-        private EthernetPacket TCPonIPv4PacketMaker()
+        private EthernetPacket TcPonIPv4PacketMaker()
         {
             // Ether封包
-            EthernetPacket ether = new EthernetPacket(PhysicalAddress.Parse(MakeMACaddr(SourceMAC1.Text, SourceMAC2.Text, SourceMAC3.Text, SourceMAC4.Text, SourceMAC5.Text, SourceMAC6.Text)),
-                                                      PhysicalAddress.Parse(MakeMACaddr(DestMAC1.Text, DestMAC2.Text, DestMAC3.Text, DestMAC4.Text, DestMAC5.Text, DestMAC6.Text)),
+            EthernetPacket ether = new EthernetPacket(PhysicalAddress.Parse(MakeMaCaddr(SourceMAC1.Text, SourceMAC2.Text, SourceMAC3.Text, SourceMAC4.Text, SourceMAC5.Text, SourceMAC6.Text)),
+                                                      PhysicalAddress.Parse(MakeMaCaddr(DestMAC1.Text, DestMAC2.Text, DestMAC3.Text, DestMAC4.Text, DestMAC5.Text, DestMAC6.Text)),
                                                       EthernetPacketType.IpV4);
 
             // TCP封包
@@ -413,11 +398,11 @@ namespace SharpPcap测试
         }
 
         // IPv4 + UDP数据包封装函数
-        private EthernetPacket UDPonIPv4PacketMaker()
+        private EthernetPacket UdPonIPv4PacketMaker()
         {
             // Ether封包
-            EthernetPacket ether = new EthernetPacket(PhysicalAddress.Parse(MakeMACaddr(SourceMAC1.Text, SourceMAC2.Text, SourceMAC3.Text, SourceMAC4.Text, SourceMAC5.Text, SourceMAC6.Text)),
-                                                      PhysicalAddress.Parse(MakeMACaddr(DestMAC1.Text, DestMAC2.Text, DestMAC3.Text, DestMAC4.Text, DestMAC5.Text, DestMAC6.Text)),
+            EthernetPacket ether = new EthernetPacket(PhysicalAddress.Parse(MakeMaCaddr(SourceMAC1.Text, SourceMAC2.Text, SourceMAC3.Text, SourceMAC4.Text, SourceMAC5.Text, SourceMAC6.Text)),
+                                                      PhysicalAddress.Parse(MakeMaCaddr(DestMAC1.Text, DestMAC2.Text, DestMAC3.Text, DestMAC4.Text, DestMAC5.Text, DestMAC6.Text)),
                                                       EthernetPacketType.IpV4);
 
             // UDP封包
@@ -453,7 +438,7 @@ namespace SharpPcap测试
 
 
         // ARP/RARP数据包封装函数
-        private EthernetPacket ARPorRARPPacketMaker()
+        private EthernetPacket ArPorRarpPacketMaker()
         {
             EthernetPacket ether;
             ARPPacket arp;
@@ -461,14 +446,14 @@ namespace SharpPcap测试
             switch (ARPOperationComboBox.SelectedIndex)
             {
                 case 0:     // ARP请求封包
-                    ether = new EthernetPacket(PhysicalAddress.Parse(MakeMACaddr(SourceMAC1.Text, SourceMAC2.Text, SourceMAC3.Text, SourceMAC4.Text, SourceMAC5.Text, SourceMAC6.Text)),
-                                               PhysicalAddress.Parse(MakeMACaddr(DestMAC1.Text, DestMAC2.Text, DestMAC3.Text, DestMAC4.Text, DestMAC5.Text, DestMAC6.Text)),
+                    ether = new EthernetPacket(PhysicalAddress.Parse(MakeMaCaddr(SourceMAC1.Text, SourceMAC2.Text, SourceMAC3.Text, SourceMAC4.Text, SourceMAC5.Text, SourceMAC6.Text)),
+                                               PhysicalAddress.Parse(MakeMaCaddr(DestMAC1.Text, DestMAC2.Text, DestMAC3.Text, DestMAC4.Text, DestMAC5.Text, DestMAC6.Text)),
                                                EthernetPacketType.Arp);
 
                     arp = new ARPPacket(ARPOperation.Request,
-                                        PhysicalAddress.Parse(MakeMACaddr(DestMAC1.Text, DestMAC2.Text, DestMAC3.Text, DestMAC4.Text, DestMAC5.Text, DestMAC6.Text)),
+                                        PhysicalAddress.Parse(MakeMaCaddr(DestMAC1.Text, DestMAC2.Text, DestMAC3.Text, DestMAC4.Text, DestMAC5.Text, DestMAC6.Text)),
                                         IPAddress.Parse(MakeIPaddr(DestIP1.Text, DestIP2.Text, DestIP3.Text, DestIP4.Text)),
-                                        PhysicalAddress.Parse(MakeMACaddr(SourceMAC1.Text, SourceMAC2.Text, SourceMAC3.Text, SourceMAC4.Text, SourceMAC5.Text, SourceMAC6.Text)),
+                                        PhysicalAddress.Parse(MakeMaCaddr(SourceMAC1.Text, SourceMAC2.Text, SourceMAC3.Text, SourceMAC4.Text, SourceMAC5.Text, SourceMAC6.Text)),
                                         IPAddress.Parse(MakeIPaddr(SourceIP1.Text, SourceIP2.Text, SourceIP3.Text, SourceIP4.Text)))
                     {
                         HardwareAddressType = LinkLayers.Ethernet,
@@ -478,7 +463,7 @@ namespace SharpPcap测试
                     if (DestMAC1.Text.ToUpper() == "FF" && DestMAC2.Text.ToUpper() == "FF" && DestMAC3.Text.ToUpper() == "FF"
                         && DestMAC4.Text.ToUpper() == "FF" && DestMAC5.Text.ToUpper() == "FF" && DestMAC6.Text.ToUpper() == "FF")
                     {
-                        arp.TargetHardwareAddress = PhysicalAddress.Parse(MakeMACaddr("00", "00", "00", "00", "00", "00"));
+                        arp.TargetHardwareAddress = PhysicalAddress.Parse(MakeMaCaddr("00", "00", "00", "00", "00", "00"));
                     }
 
                     arp.UpdateCalculatedValues();
@@ -488,14 +473,14 @@ namespace SharpPcap测试
 
                     return ether;
                 case 1:     // ARP响应封包
-                    ether = new EthernetPacket(PhysicalAddress.Parse(MakeMACaddr(SourceMAC1.Text, SourceMAC2.Text, SourceMAC3.Text, SourceMAC4.Text, SourceMAC5.Text, SourceMAC6.Text)),
-                                               PhysicalAddress.Parse(MakeMACaddr(DestMAC1.Text, DestMAC2.Text, DestMAC3.Text, DestMAC4.Text, DestMAC5.Text, DestMAC6.Text)),
+                    ether = new EthernetPacket(PhysicalAddress.Parse(MakeMaCaddr(SourceMAC1.Text, SourceMAC2.Text, SourceMAC3.Text, SourceMAC4.Text, SourceMAC5.Text, SourceMAC6.Text)),
+                                               PhysicalAddress.Parse(MakeMaCaddr(DestMAC1.Text, DestMAC2.Text, DestMAC3.Text, DestMAC4.Text, DestMAC5.Text, DestMAC6.Text)),
                                                EthernetPacketType.Arp);
 
                     arp = new ARPPacket(ARPOperation.Response,
-                                        PhysicalAddress.Parse(MakeMACaddr(DestMAC1.Text, DestMAC2.Text, DestMAC3.Text, DestMAC4.Text, DestMAC5.Text, DestMAC6.Text)),
+                                        PhysicalAddress.Parse(MakeMaCaddr(DestMAC1.Text, DestMAC2.Text, DestMAC3.Text, DestMAC4.Text, DestMAC5.Text, DestMAC6.Text)),
                                         IPAddress.Parse(MakeIPaddr(DestIP1.Text, DestIP2.Text, DestIP3.Text, DestIP4.Text)),
-                                        PhysicalAddress.Parse(MakeMACaddr(SourceMAC1.Text, SourceMAC2.Text, SourceMAC3.Text, SourceMAC4.Text, SourceMAC5.Text, SourceMAC6.Text)),
+                                        PhysicalAddress.Parse(MakeMaCaddr(SourceMAC1.Text, SourceMAC2.Text, SourceMAC3.Text, SourceMAC4.Text, SourceMAC5.Text, SourceMAC6.Text)),
                                         IPAddress.Parse(MakeIPaddr(SourceIP1.Text, SourceIP2.Text, SourceIP3.Text, SourceIP4.Text)))
                     {
                         HardwareAddressType = LinkLayers.Ethernet,
@@ -509,14 +494,14 @@ namespace SharpPcap测试
 
                     return ether;
                 case 2:     // RARP请求封包
-                    ether = new EthernetPacket(PhysicalAddress.Parse(MakeMACaddr(SourceMAC1.Text, SourceMAC2.Text, SourceMAC3.Text, SourceMAC4.Text, SourceMAC5.Text, SourceMAC6.Text)),
-                                               PhysicalAddress.Parse(MakeMACaddr(DestMAC1.Text, DestMAC2.Text, DestMAC3.Text, DestMAC4.Text, DestMAC5.Text, DestMAC6.Text)),
+                    ether = new EthernetPacket(PhysicalAddress.Parse(MakeMaCaddr(SourceMAC1.Text, SourceMAC2.Text, SourceMAC3.Text, SourceMAC4.Text, SourceMAC5.Text, SourceMAC6.Text)),
+                                               PhysicalAddress.Parse(MakeMaCaddr(DestMAC1.Text, DestMAC2.Text, DestMAC3.Text, DestMAC4.Text, DestMAC5.Text, DestMAC6.Text)),
                                                EthernetPacketType.ReverseArp);
 
                     arp = new ARPPacket(ARPOperation.RequestReverse,
-                                        PhysicalAddress.Parse(MakeMACaddr(DestMAC1.Text, DestMAC2.Text, DestMAC3.Text, DestMAC4.Text, DestMAC5.Text, DestMAC6.Text)),
+                                        PhysicalAddress.Parse(MakeMaCaddr(DestMAC1.Text, DestMAC2.Text, DestMAC3.Text, DestMAC4.Text, DestMAC5.Text, DestMAC6.Text)),
                                         IPAddress.Parse(MakeIPaddr(DestIP1.Text, DestIP2.Text, DestIP3.Text, DestIP4.Text)),
-                                        PhysicalAddress.Parse(MakeMACaddr(SourceMAC1.Text, SourceMAC2.Text, SourceMAC3.Text, SourceMAC4.Text, SourceMAC5.Text, SourceMAC6.Text)),
+                                        PhysicalAddress.Parse(MakeMaCaddr(SourceMAC1.Text, SourceMAC2.Text, SourceMAC3.Text, SourceMAC4.Text, SourceMAC5.Text, SourceMAC6.Text)),
                                         IPAddress.Parse(MakeIPaddr(SourceIP1.Text, SourceIP2.Text, SourceIP3.Text, SourceIP4.Text)))
                     {
                         HardwareAddressType = LinkLayers.Ethernet,
@@ -530,14 +515,14 @@ namespace SharpPcap测试
 
                     return ether;
                 case 3:     // RARP响应封包
-                    ether = new EthernetPacket(PhysicalAddress.Parse(MakeMACaddr(SourceMAC1.Text, SourceMAC2.Text, SourceMAC3.Text, SourceMAC4.Text, SourceMAC5.Text, SourceMAC6.Text)),
-                                               PhysicalAddress.Parse(MakeMACaddr(DestMAC1.Text, DestMAC2.Text, DestMAC3.Text, DestMAC4.Text, DestMAC5.Text, DestMAC6.Text)),
+                    ether = new EthernetPacket(PhysicalAddress.Parse(MakeMaCaddr(SourceMAC1.Text, SourceMAC2.Text, SourceMAC3.Text, SourceMAC4.Text, SourceMAC5.Text, SourceMAC6.Text)),
+                                               PhysicalAddress.Parse(MakeMaCaddr(DestMAC1.Text, DestMAC2.Text, DestMAC3.Text, DestMAC4.Text, DestMAC5.Text, DestMAC6.Text)),
                                                EthernetPacketType.ReverseArp);
 
                     arp = new ARPPacket(ARPOperation.ReplyReverse,
-                                       PhysicalAddress.Parse(MakeMACaddr(DestMAC1.Text, DestMAC2.Text, DestMAC3.Text, DestMAC4.Text, DestMAC5.Text, DestMAC6.Text)),
+                                       PhysicalAddress.Parse(MakeMaCaddr(DestMAC1.Text, DestMAC2.Text, DestMAC3.Text, DestMAC4.Text, DestMAC5.Text, DestMAC6.Text)),
                                        IPAddress.Parse(MakeIPaddr(DestIP1.Text, DestIP2.Text, DestIP3.Text, DestIP4.Text)),
-                                       PhysicalAddress.Parse(MakeMACaddr(SourceMAC1.Text, SourceMAC2.Text, SourceMAC3.Text, SourceMAC4.Text, SourceMAC5.Text, SourceMAC6.Text)),
+                                       PhysicalAddress.Parse(MakeMaCaddr(SourceMAC1.Text, SourceMAC2.Text, SourceMAC3.Text, SourceMAC4.Text, SourceMAC5.Text, SourceMAC6.Text)),
                                        IPAddress.Parse(MakeIPaddr(SourceIP1.Text, SourceIP2.Text, SourceIP3.Text, SourceIP4.Text)))
                     {
                         HardwareAddressType = LinkLayers.Ethernet,
@@ -563,7 +548,7 @@ namespace SharpPcap测试
         }
 
         //构建六段MAC地址
-        private string MakeMACaddr(string mac1, string mac2, string mac3, string mac4, string mac5, string mac6)
+        private string MakeMaCaddr(string mac1, string mac2, string mac3, string mac4, string mac5, string mac6)
         {
             return mac1.ToUpper() + "-" + mac2.ToUpper() + "-" + mac3.ToUpper() + "-" + mac4.ToUpper() + "-" + mac5.ToUpper() + "-" + mac6.ToUpper();
         }
