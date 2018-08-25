@@ -283,7 +283,7 @@ namespace SharpPcap测试 {
             // Ether封包
             var ether = new EthernetPacket(PhysicalAddress.Parse(MakeMaCaddr(SourceMAC1.Text, SourceMAC2.Text, SourceMAC3.Text, SourceMAC4.Text, SourceMAC5.Text, SourceMAC6.Text)),
                 PhysicalAddress.Parse(MakeMaCaddr(DestMAC1.Text, DestMAC2.Text, DestMAC3.Text, DestMAC4.Text, DestMAC5.Text, DestMAC6.Text)),
-                EthernetPacketType.IpV4);
+                EthernetPacketType.IPv4);
 
             // TCP封包
             var tcp = new TcpPacket(Convert.ToUInt16(SourcePortTextBox.Text), Convert.ToUInt16(DestPortTextBox.Text)) {
@@ -302,22 +302,22 @@ namespace SharpPcap测试 {
             tcp.UpdateCalculatedValues();
 
             // IPv4封包
-            var ipv4 = new IPv4Packet(IPAddress.Parse(MakeIPaddr(SourceIP1.Text, SourceIP2.Text, SourceIP3.Text, SourceIP4.Text)),
+            var IPv4 = new IPv4Packet(IPAddress.Parse(MakeIPaddr(SourceIP1.Text, SourceIP2.Text, SourceIP3.Text, SourceIP4.Text)),
                 IPAddress.Parse(MakeIPaddr(DestIP1.Text, DestIP2.Text, DestIP3.Text, DestIP4.Text))) {
                 TimeToLive = Convert.ToInt32(TTLTextBox.Text),
                 Protocol = IPProtocolType.TCP,
-                Version = IpVersion.IPv4,
+                Version = IPVersion.IPv4,
                 FragmentFlags = Convert.ToInt16(FragmentFlagsTextBox.Text),
                 FragmentOffset = Convert.ToInt32(FragmentOffsetTextBox.Text),
                 TypeOfService = Convert.ToInt32(TOSTextBox.Text),
                 Id = Convert.ToUInt16(IdentifierTextbox.Text),
                 PayloadPacket = tcp
             };
-            ether.PayloadPacket = ipv4;
-            ipv4.ParentPacket = ether;
-            ipv4.UpdateIPChecksum();
+            ether.PayloadPacket = IPv4;
+            IPv4.ParentPacket = ether;
+            IPv4.UpdateIPChecksum();
 
-            tcp.ParentPacket = ipv4;
+            tcp.ParentPacket = IPv4;
             tcp.UpdateTCPChecksum();
 
             return ether;
@@ -328,7 +328,7 @@ namespace SharpPcap测试 {
             // Ether封包
             var ether = new EthernetPacket(PhysicalAddress.Parse(MakeMaCaddr(SourceMAC1.Text, SourceMAC2.Text, SourceMAC3.Text, SourceMAC4.Text, SourceMAC5.Text, SourceMAC6.Text)),
                 PhysicalAddress.Parse(MakeMaCaddr(DestMAC1.Text, DestMAC2.Text, DestMAC3.Text, DestMAC4.Text, DestMAC5.Text, DestMAC6.Text)),
-                EthernetPacketType.IpV4);
+                EthernetPacketType.IPv4);
 
             // UDP封包
             var udp = new UdpPacket(Convert.ToUInt16(SourcePortTextBox.Text), Convert.ToUInt16(DestPortTextBox.Text));
@@ -336,22 +336,22 @@ namespace SharpPcap测试 {
             udp.UpdateCalculatedValues();
 
             // IPv4封包
-            var ipv4 = new IPv4Packet(IPAddress.Parse(MakeIPaddr(SourceIP1.Text, SourceIP2.Text, SourceIP3.Text, SourceIP4.Text)),
+            var IPv4 = new IPv4Packet(IPAddress.Parse(MakeIPaddr(SourceIP1.Text, SourceIP2.Text, SourceIP3.Text, SourceIP4.Text)),
                 IPAddress.Parse(MakeIPaddr(DestIP1.Text, DestIP2.Text, DestIP3.Text, DestIP4.Text))) {
                 TimeToLive = Convert.ToInt32(TTLTextBox.Text),
                 Protocol = IPProtocolType.UDP,
-                Version = IpVersion.IPv4,
+                Version = IPVersion.IPv4,
                 FragmentFlags = Convert.ToInt16(FragmentFlagsTextBox.Text),
                 FragmentOffset = Convert.ToInt32(FragmentOffsetTextBox.Text),
                 TypeOfService = Convert.ToInt32(TOSTextBox.Text),
                 Id = Convert.ToUInt16(IdentifierTextbox.Text),
                 PayloadPacket = udp
             };
-            ether.PayloadPacket = ipv4;
-            ipv4.ParentPacket = ether;
-            ipv4.UpdateIPChecksum();
+            ether.PayloadPacket = IPv4;
+            IPv4.ParentPacket = ether;
+            IPv4.UpdateIPChecksum();
 
-            udp.ParentPacket = ipv4;
+            udp.ParentPacket = IPv4;
             udp.UpdateUDPChecksum();
 
             return ether;
@@ -375,7 +375,7 @@ namespace SharpPcap测试 {
                         PhysicalAddress.Parse(MakeMaCaddr(SourceMAC1.Text, SourceMAC2.Text, SourceMAC3.Text, SourceMAC4.Text, SourceMAC5.Text, SourceMAC6.Text)),
                         IPAddress.Parse(MakeIPaddr(SourceIP1.Text, SourceIP2.Text, SourceIP3.Text, SourceIP4.Text))) {
                         HardwareAddressType = LinkLayers.Ethernet,
-                        ProtocolAddressType = EthernetPacketType.IpV4
+                        ProtocolAddressType = EthernetPacketType.IPv4
                     };
 
                     if (DestMAC1.Text.ToUpper() == "FF" && DestMAC2.Text.ToUpper() == "FF" && DestMAC3.Text.ToUpper() == "FF"
@@ -399,7 +399,7 @@ namespace SharpPcap测试 {
                         PhysicalAddress.Parse(MakeMaCaddr(SourceMAC1.Text, SourceMAC2.Text, SourceMAC3.Text, SourceMAC4.Text, SourceMAC5.Text, SourceMAC6.Text)),
                         IPAddress.Parse(MakeIPaddr(SourceIP1.Text, SourceIP2.Text, SourceIP3.Text, SourceIP4.Text))) {
                         HardwareAddressType = LinkLayers.Ethernet,
-                        ProtocolAddressType = EthernetPacketType.IpV4
+                        ProtocolAddressType = EthernetPacketType.IPv4
                     };
 
                     arp.UpdateCalculatedValues();
@@ -419,7 +419,7 @@ namespace SharpPcap测试 {
                         PhysicalAddress.Parse(MakeMaCaddr(SourceMAC1.Text, SourceMAC2.Text, SourceMAC3.Text, SourceMAC4.Text, SourceMAC5.Text, SourceMAC6.Text)),
                         IPAddress.Parse(MakeIPaddr(SourceIP1.Text, SourceIP2.Text, SourceIP3.Text, SourceIP4.Text))) {
                         HardwareAddressType = LinkLayers.Ethernet,
-                        ProtocolAddressType = EthernetPacketType.IpV4
+                        ProtocolAddressType = EthernetPacketType.IPv4
                     };
 
                     arp.UpdateCalculatedValues();
@@ -439,7 +439,7 @@ namespace SharpPcap测试 {
                         PhysicalAddress.Parse(MakeMaCaddr(SourceMAC1.Text, SourceMAC2.Text, SourceMAC3.Text, SourceMAC4.Text, SourceMAC5.Text, SourceMAC6.Text)),
                         IPAddress.Parse(MakeIPaddr(SourceIP1.Text, SourceIP2.Text, SourceIP3.Text, SourceIP4.Text))) {
                         HardwareAddressType = LinkLayers.Ethernet,
-                        ProtocolAddressType = EthernetPacketType.IpV4
+                        ProtocolAddressType = EthernetPacketType.IPv4
                     };
 
                     arp.UpdateCalculatedValues();
